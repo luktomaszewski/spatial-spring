@@ -1,55 +1,79 @@
 buildscript {
-	ext {
-		springBootVersion = '1.5.10.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-	}
+    ext {
+        springBootVersion = "1.5.10.RELEASE"
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "se.transmode.gradle:gradle-docker:1.2"
+    }
 }
 
-apply plugin: 'java'
-apply plugin: 'org.springframework.boot'
+apply plugin: "java"
+apply plugin: "org.springframework.boot"
 apply plugin: "jacoco"
+apply plugin: "docker"
 
-group = 'xyz.lomasz.spatialspring'
-version = '0.0.1-SNAPSHOT'
+group = "xyz.lomasz.spatialspring"
+version = "0.0.1-SNAPSHOT"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	compile "org.springframework.boot:spring-boot-starter"
-	compile "org.springframework.boot:spring-boot-starter-web"
+    compile "org.springframework.boot:spring-boot-starter"
+    compile "org.springframework.boot:spring-boot-starter-web"
+    compile "org.springframework.boot:spring-boot-starter-data-jpa"
+    compile "org.springframework.boot:spring-boot-starter-data-rest"
 
-	runtime "org.postgresql:postgresql"
+    runtime "org.postgresql:postgresql"
 
-	compileOnly "org.projectlombok:lombok"
+    compile "org.hibernate:hibernate-spatial:5.2.12.Final"
+    compile "org.hibernate:hibernate-core:5.2.12.Final"
 
-	compile "io.springfox:springfox-swagger2:2.8.0"
-	compile "io.springfox:springfox-swagger-ui:2.8.0"
+    compile "com.bedatadriven:jackson-datatype-jts:2.4"
 
-	testCompile "org.springframework.boot:spring-boot-starter-test"
-	compile "org.springframework.boot:spring-boot-starter-test"
-	compile 'org.mockito:mockito-core:2.13.0'
-	testCompile "org.assertj:assertj-core:3.8.0"
+    compileOnly "org.projectlombok:lombok"
+
+    compile "io.springfox:springfox-swagger2:2.8.0"
+    compile "io.springfox:springfox-swagger-ui:2.8.0"
+
+    testCompile "org.springframework.boot:spring-boot-starter-test"
+    compile "org.springframework.boot:spring-boot-starter-test"
+    compile "org.mockito:mockito-core:2.13.0"
+    testCompile "org.assertj:assertj-core:3.8.0"
 }
 
 jacoco {
-	toolVersion = "0.7.9"
+    toolVersion = "0.7.9"
 }
 
 jacocoTestReport {
-	reports {
-		xml.enabled true
-		csv.enabled false
-		html.destination file("${buildDir}/jacocoHtml")
-	}
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.destination file("${buildDir}/jacocoHtml")
+    }
 }
 
 test.finalizedBy jacocoTestReport
+
+task buildDocker(type: Docker) {
+    baseImage = 'develar/java:latest'
+    push = project.hasProperty('push')
+    tag = 'spatial-spring-app'
+    addFile {
+        from jar
+        rename { 'app.jar' }
+
+    }
+    entryPoint(['java', '-Djava.security.egd=file:/dev/./urandom', '-jar', '/app.jar'])
+    exposePort(667)
+}
+
+buildDocker.dependsOn(build)

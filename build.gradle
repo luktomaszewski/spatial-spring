@@ -1,0 +1,55 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.10.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: "jacoco"
+
+group = 'xyz.lomasz.spatialspring'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile "org.springframework.boot:spring-boot-starter"
+	compile "org.springframework.boot:spring-boot-starter-web"
+
+	runtime "org.postgresql:postgresql"
+
+	compileOnly "org.projectlombok:lombok"
+
+	compile "io.springfox:springfox-swagger2:2.8.0"
+	compile "io.springfox:springfox-swagger-ui:2.8.0"
+
+	testCompile "org.springframework.boot:spring-boot-starter-test"
+	compile "org.springframework.boot:spring-boot-starter-test"
+	compile 'org.mockito:mockito-core:2.13.0'
+	testCompile "org.assertj:assertj-core:3.8.0"
+}
+
+jacoco {
+	toolVersion = "0.7.9"
+}
+
+jacocoTestReport {
+	reports {
+		xml.enabled true
+		csv.enabled false
+		html.destination file("${buildDir}/jacocoHtml")
+	}
+}
+
+test.finalizedBy jacocoTestReport

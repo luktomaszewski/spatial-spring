@@ -1,1 +1,1 @@
-# SpatialSpring
+# Spatial Spring

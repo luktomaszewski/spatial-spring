@@ -23,6 +23,7 @@ targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -31,12 +32,14 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-data-jpa"
     compile "org.springframework.boot:spring-boot-starter-data-rest"
 
-    runtime "org.postgresql:postgresql"
-
     compile "org.hibernate:hibernate-spatial:5.2.12.Final"
     compile "org.hibernate:hibernate-core:5.2.12.Final"
 
     compile "com.bedatadriven:jackson-datatype-jts:2.4"
+    compile "org.wololo:jts2geojson:0.11.0"
+
+    compile "org.mapstruct:mapstruct-jdk8:1.2.0.Final"
+    compile "org.mapstruct:mapstruct-processor:1.2.0.Final"
 
     compileOnly "org.projectlombok:lombok"
 
@@ -51,6 +54,10 @@ dependencies {
 
 jacoco {
     toolVersion = "0.7.9"
+}
+
+clean {
+    delete 'out'
 }
 
 jacocoTestReport {

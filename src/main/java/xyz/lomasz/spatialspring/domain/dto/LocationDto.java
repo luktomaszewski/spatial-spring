@@ -6,6 +6,6 @@ import org.wololo.geojson.Geometry;
 @Data
 public class LocationDto {
     private String name;
-    private Geometry location;
+    private Geometry geometry;
 
 }

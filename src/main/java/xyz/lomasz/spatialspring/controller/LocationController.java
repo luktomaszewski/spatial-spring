@@ -1,5 +1,6 @@
 package xyz.lomasz.spatialspring.controller;
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -42,7 +43,7 @@ public class LocationController {
     }
 
     @RequestMapping(value = "/location/{id}", method = RequestMethod.PUT)
-    public ResponseEntity puLocation(@PathVariable("id") Long id, @RequestBody LocationDto locationDto) {
+    public ResponseEntity putLocation(@PathVariable("id") Long id, @RequestBody LocationDto locationDto) {
         if (!locationService.exists(id)) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
@@ -62,5 +63,11 @@ public class LocationController {
     @RequestMapping(value = "/locations/", method = RequestMethod.GET)
     public ResponseEntity<List<LocationWithIdDto>> getAllLocations() {
         return new ResponseEntity<>(locationService.findAllLocations(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/locations/", method = RequestMethod.POST)
+    public ResponseEntity<List<LocationWithIdDto>> getLocationsByGeometry(@RequestBody org.wololo.geojson.Geometry geoJson) {
+        Geometry geometry = locationService.convertGeoJsonToGeometry(geoJson);
+        return new ResponseEntity<>(locationService.findAllLocationsByGeometry(geometry), HttpStatus.OK);
     }
 }

@@ -12,10 +12,10 @@ import xyz.lomasz.spatialspring.domain.entity.LocationEntity;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface LocationMapper {
 
-    @Mapping(target = "location", ignore = true)
+    @Mapping(target = "geometry", ignore = true)
     LocationWithIdDto to(LocationEntity entity);
 
-    @Mapping(target = "location", ignore = true)
+    @Mapping(target = "geometry", ignore = true)
     LocationEntity to(LocationDto dto);
 
 }

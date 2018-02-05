@@ -2,16 +2,14 @@
 
 Spring Boot + Hibernate Spatial + PostGIS
 
-Swagger: (http://localhost:4326/swagger-ui.html)
-
-##Goals
-- [ ] CRUD for geospatial data
+## Goals
+- [ ] CRUD for geospatial data (geometry as GeoJSON)
     - [x] [POST] : `/location/`
-    - [x] [GET] : `/locations/`
     - [x] [GET] by ID : `/location/{id}`
-    - [ ] [GET] by location
     - [x] [PUT] : `/location/{id}`
-    - [ ] [PATCH] 
+    - [ ] [PATCH]
     - [x] [DELETE] : `/location/{id}`
+    - [x] [GET] : `/locations/`
+    - [x] [POST] Get locations within specified geometry (GeoJSON) : `/locations/`
 - [ ] Transform — return a new geometry with its coordinates transformed to a different spatial reference.
 - [ ] Spatial Analysis (for example: Geometry buffer) 

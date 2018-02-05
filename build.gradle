@@ -80,7 +80,7 @@ task buildDocker(type: Docker) {
 
     }
     entryPoint(['java', '-Djava.security.egd=file:/dev/./urandom', '-jar', '/app.jar'])
-    exposePort(667)
+    exposePort(4326)
 }
 
 buildDocker.dependsOn(build)

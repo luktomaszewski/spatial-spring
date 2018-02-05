@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import xyz.lomasz.spatialspring.domain.dto.LocationDto;
+import xyz.lomasz.spatialspring.domain.dto.LocationWithIdDto;
 import xyz.lomasz.spatialspring.domain.entity.LocationEntity;
 import xyz.lomasz.spatialspring.domain.mapper.LocationMapper;
 import xyz.lomasz.spatialspring.repository.LocationRepository;
@@ -27,7 +28,7 @@ public class LocationService {
     @Autowired
     private LocationMapper locationMapper;
 
-    public Optional<LocationDto> findLocationById(Long id) {
+    public Optional<LocationWithIdDto> findLocationById(Long id) {
         LocationEntity locationEntity = locationRepository.findById(id);
         if (locationEntity == null) {
             return Optional.empty();
@@ -35,11 +36,15 @@ public class LocationService {
         return Optional.of(convertEntityToDto(locationEntity));
     }
 
-    public List<LocationDto> findAllLocations() {
+    public List<LocationWithIdDto> findAllLocations() {
         List<LocationEntity> locationEntityList = locationRepository.findAll();
         return locationEntityList.stream()
                 .map(this::convertEntityToDto)
                 .collect(Collectors.toList());
+    }
+
+    public boolean exists(Long id) {
+        return locationRepository.exists(id);
     }
 
     public Long saveLocation(LocationDto locationDto) {
@@ -48,8 +53,18 @@ public class LocationService {
         return locationEntity.getId();
     }
 
-    private LocationDto convertEntityToDto(LocationEntity locationEntity) {
-        LocationDto locationDto = locationMapper.to(locationEntity);
+    public void deleteLocation(Long id) {
+        locationRepository.delete(id);
+    }
+
+    public void updateLocation(Long id, LocationDto locationDto) {
+        LocationEntity locationEntity = convertDtoToEntity(locationDto);
+        locationEntity.setId(id);
+        locationRepository.save(locationEntity);
+    }
+
+    public LocationWithIdDto convertEntityToDto(LocationEntity locationEntity) {
+        LocationWithIdDto locationDto = locationMapper.to(locationEntity);
 
         Geometry geometry = locationEntity.getLocation();
         GeoJSONWriter writer = new GeoJSONWriter();
@@ -59,7 +74,7 @@ public class LocationService {
         return locationDto;
     }
 
-    private LocationEntity convertDtoToEntity(LocationDto locationDto) {
+    public LocationEntity convertDtoToEntity(LocationDto locationDto) {
         LocationEntity locationEntity = locationMapper.to(locationDto);
 
         org.wololo.geojson.Geometry geoJson = locationDto.getLocation();

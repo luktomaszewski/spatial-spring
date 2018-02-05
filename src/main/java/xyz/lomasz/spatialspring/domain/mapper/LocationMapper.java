@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.stereotype.Component;
 import xyz.lomasz.spatialspring.domain.dto.LocationDto;
+import xyz.lomasz.spatialspring.domain.dto.LocationWithIdDto;
 import xyz.lomasz.spatialspring.domain.entity.LocationEntity;
 
 @Component
@@ -12,7 +13,7 @@ import xyz.lomasz.spatialspring.domain.entity.LocationEntity;
 public interface LocationMapper {
 
     @Mapping(target = "location", ignore = true)
-    LocationDto to(LocationEntity entity);
+    LocationWithIdDto to(LocationEntity entity);
 
     @Mapping(target = "location", ignore = true)
     LocationEntity to(LocationDto dto);

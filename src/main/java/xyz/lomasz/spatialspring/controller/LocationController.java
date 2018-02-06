@@ -65,7 +65,7 @@ public class LocationController {
         return new ResponseEntity<>(locationService.findAllLocations(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/locations/", method = RequestMethod.POST)
+    @RequestMapping(value = "/locations/within", method = RequestMethod.POST)
     public ResponseEntity<List<LocationWithIdDto>> getLocationsByGeometry(@RequestBody org.wololo.geojson.Geometry geoJson) {
         Geometry geometry = locationService.convertGeoJsonToGeometry(geoJson);
         return new ResponseEntity<>(locationService.findAllLocationsByGeometry(geometry), HttpStatus.OK);

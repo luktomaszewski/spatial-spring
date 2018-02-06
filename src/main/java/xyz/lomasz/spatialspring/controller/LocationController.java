@@ -20,10 +20,14 @@ import java.util.Optional;
 @RestController
 public class LocationController {
 
-    @Autowired
-    private LocationService locationService;
+    private final LocationService locationService;
 
-    @RequestMapping(value ="/location/", method = RequestMethod.POST)
+    @Autowired
+    public LocationController(LocationService locationService) {
+        this.locationService = locationService;
+    }
+
+    @RequestMapping(value = "/location/", method = RequestMethod.POST)
     public ResponseEntity postLocation(@RequestBody Feature feature) {
         Long id = locationService.saveLocation(feature);
 

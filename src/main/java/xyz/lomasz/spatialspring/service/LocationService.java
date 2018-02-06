@@ -22,8 +22,12 @@ import java.util.Optional;
 @CommonsLog
 public class LocationService {
 
+    private final LocationRepository locationRepository;
+
     @Autowired
-    private LocationRepository locationRepository;
+    public LocationService(LocationRepository locationRepository) {
+        this.locationRepository = locationRepository;
+    }
 
     public boolean exists(Long id) {
         return locationRepository.exists(id);
@@ -84,7 +88,7 @@ public class LocationService {
                         f.setAccessible(true);
                         f.set(entity, propertiesList.getOrDefault(i.getName(), null));
                     } catch (NoSuchFieldException | IllegalAccessException e) {
-                        throw new IllegalArgumentException();
+                        log.warn(e.getMessage());
                     }
                 });
         entity.setGeometry(convertGeoJsonToGeometry(feature.getGeometry()));
@@ -95,17 +99,17 @@ public class LocationService {
         Long id = entity.getId();
         org.wololo.geojson.Geometry geometry = convertGeometryToGeoJson(entity.getGeometry());
 
-        Map<String, Object> properties = new HashMap<String, Object>();
+        Map<String, Object> properties = new HashMap<>();
         List<Field> fieldList = Arrays.asList(LocationEntity.class.getDeclaredFields());
         fieldList
                 .forEach(field -> {
                     try {
                         field.setAccessible(true);
-                            if (field.getType() != Geometry.class && field.getName() != "id") {
-                                properties.put(field.getName(), field.get(entity));
-                            }
+                        if (field.getType() != Geometry.class && !field.getName().equals("id")) {
+                            properties.put(field.getName(), field.get(entity));
+                        }
                     } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                       log.warn(e.getMessage());
                     }
                 });
 

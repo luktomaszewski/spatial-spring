@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 
 @Data
 @Entity(name = "location")
-public class LocationEntity  {
+public class LocationEntity {
 
     @Id
     @Column(name = "id")

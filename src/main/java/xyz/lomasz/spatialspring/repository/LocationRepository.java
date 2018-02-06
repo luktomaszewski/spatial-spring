@@ -13,6 +13,7 @@ import java.util.List;
 public interface LocationRepository extends JpaRepository<LocationEntity, Long> {
 
     List<LocationEntity> findAll();
+
     LocationEntity findById(Long id);
 
     @Query("SELECT l FROM location AS l WHERE within(l.geometry, :filter) = TRUE")

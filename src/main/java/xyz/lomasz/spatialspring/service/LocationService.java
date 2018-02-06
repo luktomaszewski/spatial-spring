@@ -2,20 +2,21 @@ package xyz.lomasz.spatialspring.service;
 
 import com.vividsolutions.jts.geom.Geometry;
 import lombok.extern.apachecommons.CommonsLog;
-import org.hibernate.spatial.SpatialRelation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.wololo.geojson.Feature;
+import org.wololo.geojson.FeatureCollection;
 import org.wololo.jts2geojson.GeoJSONReader;
 import org.wololo.jts2geojson.GeoJSONWriter;
-import xyz.lomasz.spatialspring.domain.dto.LocationDto;
-import xyz.lomasz.spatialspring.domain.dto.LocationWithIdDto;
 import xyz.lomasz.spatialspring.domain.entity.LocationEntity;
-import xyz.lomasz.spatialspring.domain.mapper.LocationMapper;
 import xyz.lomasz.spatialspring.repository.LocationRepository;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @CommonsLog
@@ -24,62 +25,91 @@ public class LocationService {
     @Autowired
     private LocationRepository locationRepository;
 
-    @Autowired
-    private LocationMapper locationMapper;
-
     public boolean exists(Long id) {
         return locationRepository.exists(id);
     }
 
-    public Optional<LocationWithIdDto> findLocationById(Long id) {
-        LocationEntity locationEntity = locationRepository.findById(id);
-        if (locationEntity == null) {
-            return Optional.empty();
-        }
-        return Optional.of(convertEntityToDto(locationEntity));
-    }
-
-    public List<LocationWithIdDto> findAllLocations() {
-        List<LocationEntity> locationEntityList = locationRepository.findAll();
-        return locationEntityList.stream()
-                .map(this::convertEntityToDto)
-                .collect(Collectors.toList());
-    }
-
-    public Long saveLocation(LocationDto locationDto) {
-        LocationEntity locationEntity = convertDtoToEntity(locationDto);
+    public Long saveLocation(Feature feature) {
+        LocationEntity locationEntity = convertFeatureToEntity(feature);
         locationRepository.save(locationEntity);
         return locationEntity.getId();
+    }
+
+    public void updateLocation(Long id, Feature feature) {
+        LocationEntity locationEntity = convertFeatureToEntity(feature);
+        locationEntity.setId(id);
+        locationRepository.save(locationEntity);
     }
 
     public void deleteLocation(Long id) {
         locationRepository.delete(id);
     }
 
-    public void updateLocation(Long id, LocationDto locationDto) {
-        LocationEntity locationEntity = convertDtoToEntity(locationDto);
-        locationEntity.setId(id);
-        locationRepository.save(locationEntity);
+    public Optional<Feature> findLocationById(Long id) {
+        LocationEntity locationEntity = locationRepository.findById(id);
+        if (locationEntity == null) {
+            return Optional.empty();
+        }
+        return Optional.of(convertEntityToFeature(locationEntity));
     }
 
-    public LocationWithIdDto convertEntityToDto(LocationEntity locationEntity) {
-        LocationWithIdDto locationDto = locationMapper.to(locationEntity);
+    public FeatureCollection findAllLocations() {
+        List<LocationEntity> locationEntityList = locationRepository.findAll();
 
-        Geometry geometry = locationEntity.getGeometry();
-        org.wololo.geojson.Geometry geoJson = convertGeometryToGeoJson(geometry);
-        locationDto.setGeometry(geoJson);
+        Feature[] features = locationEntityList.stream()
+                .map(this::convertEntityToFeature)
+                .toArray(Feature[]::new);
 
-        return locationDto;
+        return new FeatureCollection(features);
     }
 
-    public LocationEntity convertDtoToEntity(LocationDto locationDto) {
-        LocationEntity locationEntity = locationMapper.to(locationDto);
+    public FeatureCollection findAllLocationsByGeometry(Geometry geometry) {
+        List<LocationEntity> locationEntityList = locationRepository.findWithin(geometry);
 
-        org.wololo.geojson.Geometry geoJson = locationDto.getGeometry();
-        Geometry geometry = convertGeoJsonToGeometry(geoJson);
-        locationEntity.setGeometry(geometry);
+        Feature[] features = locationEntityList.stream()
+                .map(this::convertEntityToFeature)
+                .toArray(Feature[]::new);
 
-        return locationEntity;
+        return new FeatureCollection(features);
+
+    }
+
+    public LocationEntity convertFeatureToEntity(Feature feature) {
+        LocationEntity entity = new LocationEntity();
+        Map<String, Object> propertiesList = feature.getProperties();
+        Arrays.asList(LocationEntity.class.getDeclaredFields())
+                .forEach(i -> {
+                    try {
+                        Field f = LocationEntity.class.getDeclaredField(i.getName());
+                        f.setAccessible(true);
+                        f.set(entity, propertiesList.getOrDefault(i.getName(), null));
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new IllegalArgumentException();
+                    }
+                });
+        entity.setGeometry(convertGeoJsonToGeometry(feature.getGeometry()));
+        return entity;
+    }
+
+    public Feature convertEntityToFeature(LocationEntity entity) {
+        Long id = entity.getId();
+        org.wololo.geojson.Geometry geometry = convertGeometryToGeoJson(entity.getGeometry());
+
+        Map<String, Object> properties = new HashMap<String, Object>();
+        List<Field> fieldList = Arrays.asList(LocationEntity.class.getDeclaredFields());
+        fieldList
+                .forEach(field -> {
+                    try {
+                        field.setAccessible(true);
+                            if (field.getType() != Geometry.class && field.getName() != "id") {
+                                properties.put(field.getName(), field.get(entity));
+                            }
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+        return new Feature(id, geometry, properties);
     }
 
     public org.wololo.geojson.Geometry convertGeometryToGeoJson(Geometry geometry) {
@@ -90,14 +120,5 @@ public class LocationService {
     public Geometry convertGeoJsonToGeometry(org.wololo.geojson.Geometry geoJson) {
         GeoJSONReader reader = new GeoJSONReader();
         return reader.read(geoJson);
-    }
-
-    public List<LocationWithIdDto> findAllLocationsByGeometry(Geometry geometry) {
-       List<LocationEntity> locationEntityList = locationRepository.findWithin(geometry);
-
-       return locationEntityList.stream()
-               .map(this::convertEntityToDto)
-               .collect(Collectors.toList());
-
     }
 }

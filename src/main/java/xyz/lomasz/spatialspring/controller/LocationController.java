@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
-import xyz.lomasz.spatialspring.domain.dto.LocationDto;
-import xyz.lomasz.spatialspring.domain.dto.LocationWithIdDto;
+import org.wololo.geojson.Feature;
+import org.wololo.geojson.FeatureCollection;
 import xyz.lomasz.spatialspring.service.LocationService;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -25,8 +24,8 @@ public class LocationController {
     private LocationService locationService;
 
     @RequestMapping(value ="/location/", method = RequestMethod.POST)
-    public ResponseEntity postLocation(@RequestBody LocationDto locationDto) {
-        Long id = locationService.saveLocation(locationDto);
+    public ResponseEntity postLocation(@RequestBody Feature feature) {
+        Long id = locationService.saveLocation(feature);
 
         UriComponentsBuilder ucBuilder = UriComponentsBuilder.newInstance();
         HttpHeaders headers = new HttpHeaders();
@@ -37,17 +36,17 @@ public class LocationController {
 
     @RequestMapping(value = "/location/{id}", method = RequestMethod.GET)
     public ResponseEntity getLocationById(@PathVariable("id") Long id) {
-        Optional<LocationWithIdDto> location = locationService.findLocationById(id);
+        Optional<Feature> location = locationService.findLocationById(id);
         return location.map(i -> new ResponseEntity<>(i, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(value = "/location/{id}", method = RequestMethod.PUT)
-    public ResponseEntity putLocation(@PathVariable("id") Long id, @RequestBody LocationDto locationDto) {
+    public ResponseEntity putLocation(@PathVariable("id") Long id, @RequestBody Feature feature) {
         if (!locationService.exists(id)) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
-        locationService.updateLocation(id, locationDto);
+        locationService.updateLocation(id, feature);
         return new ResponseEntity(HttpStatus.OK);
     }
 
@@ -61,12 +60,12 @@ public class LocationController {
     }
 
     @RequestMapping(value = "/locations/", method = RequestMethod.GET)
-    public ResponseEntity<List<LocationWithIdDto>> getAllLocations() {
+    public ResponseEntity<FeatureCollection> getAllLocations() {
         return new ResponseEntity<>(locationService.findAllLocations(), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/locations/within", method = RequestMethod.POST)
-    public ResponseEntity<List<LocationWithIdDto>> getLocationsByGeometry(@RequestBody org.wololo.geojson.Geometry geoJson) {
+    public ResponseEntity<FeatureCollection> getLocationsByGeometry(@RequestBody org.wololo.geojson.Geometry geoJson) {
         Geometry geometry = locationService.convertGeoJsonToGeometry(geoJson);
         return new ResponseEntity<>(locationService.findAllLocationsByGeometry(geometry), HttpStatus.OK);
     }

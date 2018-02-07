@@ -52,12 +52,31 @@ dependencies {
     testCompile "org.assertj:assertj-core:3.8.0"
 }
 
+clean {
+    delete 'out'
+}
+
 jacoco {
     toolVersion = "0.7.9"
 }
 
-clean {
-    delete 'out'
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.destination file("${buildDir}/jacocoHtml")
+    }
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: [
+                            '**/*Config**',
+                            '**/*Application*',
+                            '**/*domain*'
+
+                    ])
+        })
+    }
 }
 
 jacocoTestReport {

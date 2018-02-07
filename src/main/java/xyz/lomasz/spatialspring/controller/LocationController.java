@@ -1,6 +1,5 @@
 package xyz.lomasz.spatialspring.controller;
 
-import com.vividsolutions.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,7 +19,7 @@ import java.util.Optional;
 @RestController
 public class LocationController {
 
-    private final LocationService locationService;
+    private LocationService locationService;
 
     @Autowired
     public LocationController(LocationService locationService) {
@@ -70,7 +69,6 @@ public class LocationController {
 
     @RequestMapping(value = "/locations/within", method = RequestMethod.POST)
     public ResponseEntity<FeatureCollection> getLocationsByGeometry(@RequestBody org.wololo.geojson.Geometry geoJson) {
-        Geometry geometry = locationService.convertGeoJsonToGeometry(geoJson);
-        return new ResponseEntity<>(locationService.findAllLocationsByGeometry(geometry), HttpStatus.OK);
+        return new ResponseEntity<>(locationService.findAllLocationsWithin(geoJson), HttpStatus.OK);
     }
 }

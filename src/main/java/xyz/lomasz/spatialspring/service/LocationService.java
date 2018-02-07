@@ -22,7 +22,7 @@ import java.util.Optional;
 @CommonsLog
 public class LocationService {
 
-    private final LocationRepository locationRepository;
+    private LocationRepository locationRepository;
 
     @Autowired
     public LocationService(LocationRepository locationRepository) {
@@ -59,29 +59,28 @@ public class LocationService {
 
     public FeatureCollection findAllLocations() {
         List<LocationEntity> locationEntityList = locationRepository.findAll();
-
-        Feature[] features = locationEntityList.stream()
-                .map(this::convertEntityToFeature)
-                .toArray(Feature[]::new);
-
+        Feature[] features = mapEntityListToFeature(locationEntityList);
         return new FeatureCollection(features);
     }
 
-    public FeatureCollection findAllLocationsByGeometry(Geometry geometry) {
+    public FeatureCollection findAllLocationsWithin(org.wololo.geojson.Geometry geoJson) {
+        Geometry geometry = convertGeoJsonToGeometry(geoJson);
         List<LocationEntity> locationEntityList = locationRepository.findWithin(geometry);
-
-        Feature[] features = locationEntityList.stream()
-                .map(this::convertEntityToFeature)
-                .toArray(Feature[]::new);
-
+        Feature[] features = mapEntityListToFeature(locationEntityList);
         return new FeatureCollection(features);
-
     }
 
-    public LocationEntity convertFeatureToEntity(Feature feature) {
+    private Feature[] mapEntityListToFeature(List<LocationEntity> locationEntityList) {
+        return locationEntityList.stream()
+                .map(this::convertEntityToFeature)
+                .toArray(Feature[]::new);
+    }
+
+    private LocationEntity convertFeatureToEntity(Feature feature) {
         LocationEntity entity = new LocationEntity();
         Map<String, Object> propertiesList = feature.getProperties();
-        Arrays.asList(LocationEntity.class.getDeclaredFields())
+        Arrays.stream(LocationEntity.class.getDeclaredFields())
+                .filter(i -> !i.isSynthetic())
                 .forEach(i -> {
                     try {
                         Field f = LocationEntity.class.getDeclaredField(i.getName());
@@ -95,13 +94,13 @@ public class LocationService {
         return entity;
     }
 
-    public Feature convertEntityToFeature(LocationEntity entity) {
+    private Feature convertEntityToFeature(LocationEntity entity) {
         Long id = entity.getId();
         org.wololo.geojson.Geometry geometry = convertGeometryToGeoJson(entity.getGeometry());
 
         Map<String, Object> properties = new HashMap<>();
-        List<Field> fieldList = Arrays.asList(LocationEntity.class.getDeclaredFields());
-        fieldList
+        Arrays.stream(LocationEntity.class.getDeclaredFields())
+                .filter(i -> !i.isSynthetic())
                 .forEach(field -> {
                     try {
                         field.setAccessible(true);
@@ -109,19 +108,19 @@ public class LocationService {
                             properties.put(field.getName(), field.get(entity));
                         }
                     } catch (IllegalAccessException e) {
-                       log.warn(e.getMessage());
+                        log.warn(e.getMessage());
                     }
                 });
 
         return new Feature(id, geometry, properties);
     }
 
-    public org.wololo.geojson.Geometry convertGeometryToGeoJson(Geometry geometry) {
+    private org.wololo.geojson.Geometry convertGeometryToGeoJson(Geometry geometry) {
         GeoJSONWriter writer = new GeoJSONWriter();
         return writer.write(geometry);
     }
 
-    public Geometry convertGeoJsonToGeometry(org.wololo.geojson.Geometry geoJson) {
+    private Geometry convertGeoJsonToGeometry(org.wololo.geojson.Geometry geoJson) {
         GeoJSONReader reader = new GeoJSONReader();
         return reader.read(geoJson);
     }

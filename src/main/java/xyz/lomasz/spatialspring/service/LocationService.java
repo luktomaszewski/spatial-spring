@@ -59,18 +59,18 @@ public class LocationService {
 
     public FeatureCollection findAllLocations() {
         List<LocationEntity> locationEntityList = locationRepository.findAll();
-        Feature[] features = mapEntityListToFeature(locationEntityList);
+        Feature[] features = mapEntityListToFeatures(locationEntityList);
         return new FeatureCollection(features);
     }
 
     public FeatureCollection findAllLocationsWithin(org.wololo.geojson.Geometry geoJson) {
-        Geometry geometry = convertGeoJsonToGeometry(geoJson);
+        Geometry geometry = map(geoJson);
         List<LocationEntity> locationEntityList = locationRepository.findWithin(geometry);
-        Feature[] features = mapEntityListToFeature(locationEntityList);
+        Feature[] features = mapEntityListToFeatures(locationEntityList);
         return new FeatureCollection(features);
     }
 
-    private Feature[] mapEntityListToFeature(List<LocationEntity> locationEntityList) {
+    private Feature[] mapEntityListToFeatures(List<LocationEntity> locationEntityList) {
         return locationEntityList.stream()
                 .map(this::convertEntityToFeature)
                 .toArray(Feature[]::new);
@@ -90,13 +90,13 @@ public class LocationService {
                         log.warn(e.getMessage());
                     }
                 });
-        entity.setGeometry(convertGeoJsonToGeometry(feature.getGeometry()));
+        entity.setGeometry(map(feature.getGeometry()));
         return entity;
     }
 
     private Feature convertEntityToFeature(LocationEntity entity) {
         Long id = entity.getId();
-        org.wololo.geojson.Geometry geometry = convertGeometryToGeoJson(entity.getGeometry());
+        org.wololo.geojson.Geometry geometry = map(entity.getGeometry());
 
         Map<String, Object> properties = new HashMap<>();
         Arrays.stream(LocationEntity.class.getDeclaredFields())
@@ -115,12 +115,12 @@ public class LocationService {
         return new Feature(id, geometry, properties);
     }
 
-    private org.wololo.geojson.Geometry convertGeometryToGeoJson(Geometry geometry) {
+    private org.wololo.geojson.Geometry map(Geometry geometry) {
         GeoJSONWriter writer = new GeoJSONWriter();
         return writer.write(geometry);
     }
 
-    private Geometry convertGeoJsonToGeometry(org.wololo.geojson.Geometry geoJson) {
+    private Geometry map(org.wololo.geojson.Geometry geoJson) {
         GeoJSONReader reader = new GeoJSONReader();
         return reader.read(geoJson);
     }

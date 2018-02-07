@@ -23,7 +23,7 @@ targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
@@ -38,16 +38,12 @@ dependencies {
     compile "com.bedatadriven:jackson-datatype-jts:2.4"
     compile "org.wololo:jts2geojson:0.11.0"
 
-    compile "org.mapstruct:mapstruct-jdk8:1.2.0.Final"
-    compile "org.mapstruct:mapstruct-processor:1.2.0.Final"
-
     compileOnly "org.projectlombok:lombok"
 
     compile "io.springfox:springfox-swagger2:2.8.0"
     compile "io.springfox:springfox-swagger-ui:2.8.0"
 
     testCompile "org.springframework.boot:spring-boot-starter-test"
-    compile "org.springframework.boot:spring-boot-starter-test"
     compile "org.mockito:mockito-core:2.13.0"
     testCompile "org.assertj:assertj-core:3.8.0"
 }

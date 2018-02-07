@@ -62,7 +62,7 @@ public class LocationController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/locations/", method = RequestMethod.GET)
+    @RequestMapping(value = "/locations", method = RequestMethod.GET)
     public ResponseEntity<FeatureCollection> getAllLocations() {
         return new ResponseEntity<>(locationService.findAllLocations(), HttpStatus.OK);
     }

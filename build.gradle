@@ -44,7 +44,7 @@ dependencies {
     compile "io.springfox:springfox-swagger-ui:2.8.0"
 
     testCompile "org.springframework.boot:spring-boot-starter-test"
-    compile "org.mockito:mockito-core:2.13.0"
+    testCompile "org.mockito:mockito-core:2.13.0"
     testCompile "org.assertj:assertj-core:3.8.0"
 }
 
@@ -53,7 +53,7 @@ clean {
 }
 
 jacoco {
-    toolVersion = "0.7.9"
+    toolVersion = "0.8.0"
 }
 
 jacocoTestReport {

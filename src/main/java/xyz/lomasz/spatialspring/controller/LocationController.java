@@ -26,7 +26,7 @@ public class LocationController {
         this.locationService = locationService;
     }
 
-    @RequestMapping(value = "/location/", method = RequestMethod.POST)
+    @RequestMapping(value = "/location", method = RequestMethod.POST)
     public ResponseEntity postLocation(@RequestBody Feature feature) {
         Long id = locationService.saveLocation(feature);
 

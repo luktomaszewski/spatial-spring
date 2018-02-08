@@ -2,9 +2,18 @@
 
 Spring Boot + Hibernate Spatial + PostGIS
 
+## How to run
+
+**REQUIRED: Docker**
+   
+```
+gradlew buildDocker
+docker-compose up
+```
+
 ## Goals
 - [ ] CRUD for geospatial data (geometry as GeoJSON)
-    - [x] [POST] : `/location/`
+    - [x] [POST] : `/location`
     - [x] [GET] by ID : `/location/{id}`
     - [x] [PUT] : `/location/{id}`
     - [ ] [PATCH]
@@ -14,7 +23,7 @@ Spring Boot + Hibernate Spatial + PostGIS
 - [ ] Transform — return a new geometry with its coordinates transformed to a different spatial reference.
 - [ ] Spatial Analysis (for example: Geometry buffer)
 
-### [POST] /location/ Sample Data
+### Sample Data for POST (`/location/`)
 ```
 {
     "type": "Feature",

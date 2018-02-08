@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+  db:
+    image: kartoza/postgis:10.0-2.4
+    ports:
+      - "5432:5432"
+    environment:
+      - ALLOW_IP_RANGE=0.0.0.0/0
+      - POSTGRES_DBNAME=spatialspring
+  app:
+    image: spatial-spring-app:0.0.1-SNAPSHOT
+    ports:
+      - "4326:4326"
+    depends_on:
+      - "db"

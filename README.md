@@ -4,11 +4,32 @@ Spring Boot + Hibernate Spatial + PostGIS
 
 ## How to run
 
-**REQUIRED: Docker**
    
+#### using docker-compose
+
+**REQUIRED: Docker is running**
+
 ```
-gradlew buildDocker
+gradlew clean build
 docker-compose up
+```
+
+#### using database in docker
+
+**REQUIRED: Docker is running**
+
+```
+docker run -p 5432:5432 -e ALLOW_IP_RANGE=0.0.0.0/0 -e POSTGRES_DBNAME=spatialspring -e POSTGRES_USER=postgres -e POSTGRES_PASS=admin kartoza/postgis:9.6-2.4
+gradlew clean bootRun -Dspring.profiles.active=local
+```
+
+#### using local database
+
+**REQUIRED: PostgreSQL with PostGIS is running**
+database: `spatialspring` & user: `postgres` & password: `admin`
+
+```
+gradlew clean bootRun -Dspring.profiles.active=local
 ```
 
 ## Goals

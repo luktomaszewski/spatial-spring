@@ -7,17 +7,15 @@ buildscript {
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-        classpath "se.transmode.gradle:gradle-docker:1.2"
     }
 }
 
 apply plugin: "java"
 apply plugin: "org.springframework.boot"
 apply plugin: "jacoco"
-apply plugin: "docker"
 
 group = "xyz.lomasz.spatialspring"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.1"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -52,6 +50,10 @@ clean {
     delete 'out'
 }
 
+bootRun {
+    bootRun.systemProperties = System.properties
+}
+
 jacoco {
     toolVersion = "0.8.0"
 }
@@ -75,27 +77,4 @@ jacocoTestReport {
     }
 }
 
-jacocoTestReport {
-    reports {
-        xml.enabled true
-        csv.enabled false
-        html.destination file("${buildDir}/jacocoHtml")
-    }
-}
-
 test.finalizedBy jacocoTestReport
-
-task buildDocker(type: Docker) {
-    baseImage = 'develar/java:latest'
-    push = project.hasProperty('push')
-    tag = 'spatial-spring-app'
-    addFile {
-        from jar
-        rename { 'app.jar' }
-
-    }
-    entryPoint(['java', '-Djava.security.egd=file:/dev/./urandom', '-jar', '/app.jar'])
-    exposePort(4326)
-}
-
-buildDocker.dependsOn(build)

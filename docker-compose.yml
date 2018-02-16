@@ -2,15 +2,17 @@ version: '3.3'
 
 services:
   db:
-    image: kartoza/postgis:10.0-2.4
+    image: kartoza/postgis:9.6-2.4
     ports:
       - "5432:5432"
     environment:
       - ALLOW_IP_RANGE=0.0.0.0/0
-      - POSTGRES_DBNAME=spatialspring
   app:
-    image: spatial-spring-app:0.0.1-SNAPSHOT
+    build: .
     ports:
       - "4326:4326"
     depends_on:
       - "db"
+    environment:
+       SPRING_PROFILES_ACTIVE: docker
+    command: ["/wait-for-it.sh", "-h", "db", "-p", "5432", "-t", "30", "-s", "--", "java", "-jar", "/app.jar"]

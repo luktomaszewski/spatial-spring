@@ -20,8 +20,8 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
-    mavenCentral()
-    maven { url "https://jitpack.io" }
+    maven { url 'http://download.osgeo.org/webdav/geotools/' }
+    jcenter()
 }
 
 dependencies {
@@ -30,11 +30,13 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-data-jpa"
     compile "org.springframework.boot:spring-boot-starter-data-rest"
 
-    compile "org.hibernate:hibernate-spatial:5.2.12.Final"
     compile "org.hibernate:hibernate-core:5.2.12.Final"
 
+    compile "org.hibernate:hibernate-spatial:5.2.12.Final"
     compile "com.bedatadriven:jackson-datatype-jts:2.4"
     compile "org.wololo:jts2geojson:0.11.0"
+    compile "org.geotools:gt-main:18.2"
+    compile "org.geotools:gt-epsg-hsql:18.2"
 
     compileOnly "org.projectlombok:lombok"
 

@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.wololo.geojson.Feature;
 import org.wololo.geojson.FeatureCollection;
-import org.wololo.jts2geojson.GeoJSONReader;
-import org.wololo.jts2geojson.GeoJSONWriter;
 import xyz.lomasz.spatialspring.domain.entity.LocationEntity;
 import xyz.lomasz.spatialspring.repository.LocationRepository;
 
@@ -17,6 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static xyz.lomasz.spatialspring.helper.GeometryHelper.convertGeoJsonToJtsGeometry;
+import static xyz.lomasz.spatialspring.helper.GeometryHelper.convertJtsGeometryToGeoJson;
 
 @Service
 @CommonsLog
@@ -64,7 +65,7 @@ public class LocationService {
     }
 
     public FeatureCollection findAllLocationsWithin(org.wololo.geojson.Geometry geoJson) {
-        Geometry geometry = map(geoJson);
+        Geometry geometry = convertGeoJsonToJtsGeometry(geoJson);
         List<LocationEntity> locationEntityList = locationRepository.findWithin(geometry);
         Feature[] features = mapEntityListToFeatures(locationEntityList);
         return new FeatureCollection(features);
@@ -90,13 +91,13 @@ public class LocationService {
                         log.warn(e.getMessage());
                     }
                 });
-        entity.setGeometry(map(feature.getGeometry()));
+        entity.setGeometry(convertGeoJsonToJtsGeometry(feature.getGeometry()));
         return entity;
     }
 
     private Feature convertEntityToFeature(LocationEntity entity) {
         Long id = entity.getId();
-        org.wololo.geojson.Geometry geometry = map(entity.getGeometry());
+        org.wololo.geojson.Geometry geometry = convertJtsGeometryToGeoJson(entity.getGeometry());
 
         Map<String, Object> properties = new HashMap<>();
         Arrays.stream(LocationEntity.class.getDeclaredFields())
@@ -115,13 +116,5 @@ public class LocationService {
         return new Feature(id, geometry, properties);
     }
 
-    private org.wololo.geojson.Geometry map(Geometry geometry) {
-        GeoJSONWriter writer = new GeoJSONWriter();
-        return writer.write(geometry);
-    }
 
-    private Geometry map(org.wololo.geojson.Geometry geoJson) {
-        GeoJSONReader reader = new GeoJSONReader();
-        return reader.read(geoJson);
-    }
 }

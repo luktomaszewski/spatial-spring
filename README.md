@@ -1,9 +1,8 @@
 # Spatial Spring
 
-Spring Boot + Hibernate Spatial + PostGIS
+Spring Boot + Hibernate Spatial + PostGIS + GeoJSON
 
 ## How to run
-
    
 #### using docker-compose
 

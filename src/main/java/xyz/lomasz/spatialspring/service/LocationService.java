@@ -30,43 +30,42 @@ public class LocationService {
         this.locationRepository = locationRepository;
     }
 
-    public boolean exists(Long id) {
-        return locationRepository.exists(id);
+    public boolean exists(String userId, Long id) {
+        return locationRepository.existsLocationEntityByUserAndId(userId, id);
     }
 
-    public Long saveLocation(Feature feature) {
+    public Long saveLocation(String userId, Feature feature) {
         LocationEntity locationEntity = convertFeatureToEntity(feature);
+        locationEntity.setUser(userId);
         locationRepository.save(locationEntity);
         return locationEntity.getId();
     }
 
-    public void updateLocation(Long id, Feature feature) {
+    public void updateLocation(String userId, Long id, Feature feature) {
         LocationEntity locationEntity = convertFeatureToEntity(feature);
         locationEntity.setId(id);
+        locationEntity.setUser(userId);
         locationRepository.save(locationEntity);
     }
 
     public void deleteLocation(Long id) {
-        locationRepository.delete(id);
+            locationRepository.delete(id);
     }
 
-    public Optional<Feature> findLocationById(Long id) {
-        LocationEntity locationEntity = locationRepository.findById(id);
-        if (locationEntity == null) {
-            return Optional.empty();
-        }
-        return Optional.of(convertEntityToFeature(locationEntity));
+    public Optional<Feature> findLocationById(String userId, Long id) {
+        Optional<LocationEntity> locationEntity = locationRepository.findByUserAndId(userId, id);
+        return locationEntity.map(this::convertEntityToFeature);
     }
 
-    public FeatureCollection findAllLocations() {
-        List<LocationEntity> locationEntityList = locationRepository.findAll();
+    public FeatureCollection findAllLocations(String userId) {
+        List<LocationEntity> locationEntityList = locationRepository.findAllByUser(userId);
         Feature[] features = mapEntityListToFeatures(locationEntityList);
         return new FeatureCollection(features);
     }
 
-    public FeatureCollection findAllLocationsWithin(org.wololo.geojson.Geometry geoJson) {
+    public FeatureCollection findAllLocationsWithin(String userId, org.wololo.geojson.Geometry geoJson) {
         Geometry geometry = convertGeoJsonToJtsGeometry(geoJson);
-        List<LocationEntity> locationEntityList = locationRepository.findWithin(geometry);
+        List<LocationEntity> locationEntityList = locationRepository.findWithin(userId, geometry);
         Feature[] features = mapEntityListToFeatures(locationEntityList);
         return new FeatureCollection(features);
     }
@@ -105,7 +104,7 @@ public class LocationService {
                 .forEach(field -> {
                     try {
                         field.setAccessible(true);
-                        if (field.getType() != Geometry.class && !field.getName().equals("id")) {
+                        if (field.getType() != Geometry.class && !field.getName().equals("id") && !field.getName().equals("user")) {
                             properties.put(field.getName(), field.get(entity));
                         }
                     } catch (IllegalAccessException e) {
@@ -115,6 +114,5 @@ public class LocationService {
 
         return new Feature(id, geometry, properties);
     }
-
 
 }

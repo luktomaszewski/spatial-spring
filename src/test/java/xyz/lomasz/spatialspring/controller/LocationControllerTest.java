@@ -34,38 +34,40 @@ public class LocationControllerTest {
     private LocationController locationController = new LocationController(locationService);
 
     @Test
-    public void postLocationShouldReturnHttpStatusCreated() throws Exception {
+    public void postLocationShouldReturnHttpStatusCreated() {
         // given
+        Long id = 1L;
+        String userId = "xyz";
         String geoJsonString = "{\"type\": \"Point\", \"coordinates\": [125.6, 10.1]}";
         Geometry geoJson = (Geometry) GeoJSONFactory.create(geoJsonString);
         Map<String, Object> properties = new HashMap<>();
         Feature feature = new Feature(geoJson, properties);
-        Long id = 1L;
 
-        when(locationService.saveLocation(feature)).thenReturn(id);
+        when(locationService.saveLocation(userId, feature)).thenReturn(id);
 
         // when
-        ResponseEntity<?> result = locationController.postLocation(feature);
+        ResponseEntity<?> result = locationController.postLocation(userId, feature);
 
         // then
-        verify(locationService, atLeastOnce()).saveLocation(feature);
+        verify(locationService, atLeastOnce()).saveLocation(userId, feature);
         assertEquals("/location/" + id, result.getHeaders().getLocation().toString());
         assertThat(result.getStatusCode(), is(HttpStatus.CREATED));
     }
 
     @Test
-    public void getLocationByIdShouldReturnHttpStatusOk() throws Exception {
+    public void getLocationByIdShouldReturnHttpStatusOk() {
         // given
         Long id = 1L;
+        String userId = "xyz";
         String geoJsonString = "{\"type\": \"Point\", \"coordinates\": [125.6, 10.1]}";
         Geometry geoJson = (Geometry) GeoJSONFactory.create(geoJsonString);
         Map<String, Object> properties = new HashMap<>();
         Feature feature = new Feature(geoJson, properties);
 
-        when(locationService.findLocationById(id)).thenReturn(Optional.of(feature));
+        when(locationService.findLocationById(userId, id)).thenReturn(Optional.of(feature));
 
         // when
-        ResponseEntity<?> result = locationController.getLocationById(id);
+        ResponseEntity<?> result = locationController.getLocationById(userId, id);
 
         // then
         assertThat(result.getBody(), is(feature));
@@ -73,87 +75,93 @@ public class LocationControllerTest {
     }
 
     @Test
-    public void getLocationByIdShouldReturnHttpStatusNotFound() throws Exception {
+    public void getLocationByIdShouldReturnHttpStatusNotFound() {
         // given
         Long id = 1L;
+        String userId = "xyz";
 
-        when(locationService.findLocationById(id)).thenReturn(Optional.empty());
+        when(locationService.findLocationById(userId, id)).thenReturn(Optional.empty());
 
         // when
-        ResponseEntity<?> result = locationController.getLocationById(id);
+        ResponseEntity<?> result = locationController.getLocationById(userId, id);
 
         // then
         assertThat(result.getStatusCode(), is(HttpStatus.NOT_FOUND));
     }
 
     @Test
-    public void putLocationShouldReturnHttpStatusOk() throws Exception {
+    public void putLocationShouldReturnHttpStatusOk() {
         // given
         Long id = 1L;
+        String userId = "xyz";
         String geoJsonString = "{\"type\": \"Point\", \"coordinates\": [125.6, 10.1]}";
         Geometry geoJson = (Geometry) GeoJSONFactory.create(geoJsonString);
         Map<String, Object> properties = new HashMap<>();
         Feature feature = new Feature(geoJson, properties);
 
-        when(locationService.exists(id)).thenReturn(true);
+        when(locationService.exists(userId, id)).thenReturn(true);
 
         // when
-        ResponseEntity<?> result = locationController.putLocation(id, feature);
+        ResponseEntity<?> result = locationController.putLocation(userId, id, feature);
 
         // then
-        verify(locationService, atLeastOnce()).updateLocation(id, feature);
+        verify(locationService, atLeastOnce()).updateLocation(userId, id, feature);
         assertThat(result.getStatusCode(), is(HttpStatus.OK));
     }
 
     @Test
-    public void putLocationShouldReturnHttpStatusNotFound() throws Exception {
+    public void putLocationShouldReturnHttpStatusNotFound() {
         // given
         Long id = 1L;
+        String userId = "xyz";
         String geoJsonString = "{\"type\": \"Point\", \"coordinates\": [125.6, 10.1]}";
         Geometry geoJson = (Geometry) GeoJSONFactory.create(geoJsonString);
         Map<String, Object> properties = new HashMap<>();
         Feature feature = new Feature(geoJson, properties);
 
-        when(locationService.exists(id)).thenReturn(false);
+        when(locationService.exists(userId, id)).thenReturn(false);
 
         // when
-        ResponseEntity<?> result = locationController.putLocation(id, feature);
+        ResponseEntity<?> result = locationController.putLocation(userId, id, feature);
 
         // then
         assertThat(result.getStatusCode(), is(HttpStatus.NOT_FOUND));
     }
 
     @Test
-    public void deleteLocationShouldReturnHttpStatusOk() throws Exception {
+    public void deleteLocationShouldReturnHttpStatusOk() {
         // given
         Long id = 1L;
+        String userId = "xyz";
 
-        when(locationService.exists(id)).thenReturn(true);
+        when(locationService.exists(userId, id)).thenReturn(true);
 
         // when
-        ResponseEntity<?> result = locationController.deleteLocation(id);
+        ResponseEntity<?> result = locationController.deleteLocation(userId, id);
 
         // then
         assertThat(result.getStatusCode(), is(HttpStatus.OK));
     }
 
     @Test
-    public void deleteLocationShouldReturnHttpStatusNotFound() throws Exception {
+    public void deleteLocationShouldReturnHttpStatusNotFound() {
         // given
         Long id = 1L;
+        String userId = "xyz";
 
-        when(locationService.exists(id)).thenReturn(false);
+        when(locationService.exists(userId, id)).thenReturn(false);
 
         // when
-        ResponseEntity<?> result = locationController.deleteLocation(id);
+        ResponseEntity<?> result = locationController.deleteLocation(userId, id);
 
         // then
         assertThat(result.getStatusCode(), is(HttpStatus.NOT_FOUND));
     }
 
     @Test
-    public void getAllLocationsShouldReturnFeatureCollection() throws Exception {
+    public void getAllLocationsShouldReturnFeatureCollection() {
         // given
+        String userId = "xyz";
         String geoJsonString = "{\"type\": \"Point\", \"coordinates\": [125.6, 10.1]}";
         Geometry geoJson = (Geometry) GeoJSONFactory.create(geoJsonString);
         Map<String, Object> properties = new HashMap<>();
@@ -162,10 +170,10 @@ public class LocationControllerTest {
         Feature[] features = {feature};
         FeatureCollection featureCollection = new FeatureCollection(features);
 
-        when(locationService.findAllLocations()).thenReturn(featureCollection);
+        when(locationService.findAllLocations(userId)).thenReturn(featureCollection);
 
         // when
-        ResponseEntity<?> result = locationController.getAllLocations();
+        ResponseEntity<?> result = locationController.getAllLocations(userId);
 
         // then
         assertThat(result.getBody(), is(featureCollection));
@@ -173,8 +181,9 @@ public class LocationControllerTest {
     }
 
     @Test
-    public void getLocationsByGeometryShouldReturnFeatureCollection() throws Exception {
+    public void getLocationsByGeometryShouldReturnFeatureCollection() {
         // given
+        String userId = "xyz";
         String geoJsonString = "{\"type\": \"Point\", \"coordinates\": [125.6, 10.1]}";
         Geometry geoJson = (Geometry) GeoJSONFactory.create(geoJsonString);
         Map<String, Object> properties = new HashMap<>();
@@ -183,10 +192,10 @@ public class LocationControllerTest {
         Feature[] features = {feature};
         FeatureCollection featureCollection = new FeatureCollection(features);
 
-        when(locationService.findAllLocationsWithin(geoJson)).thenReturn(featureCollection);
+        when(locationService.findAllLocationsWithin(userId, geoJson)).thenReturn(featureCollection);
 
         // when
-        ResponseEntity<?> result = locationController.getLocationsByGeometry(geoJson);
+        ResponseEntity<?> result = locationController.getLocationsByGeometry(userId, geoJson);
 
         // then
         assertThat(result.getBody(), is(featureCollection));

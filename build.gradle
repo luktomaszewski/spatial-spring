@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = "1.5.10.RELEASE"
+        springBootVersion = "1.5.9.RELEASE"
     }
     repositories {
         mavenCentral()
@@ -20,8 +20,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
-    maven { url 'http://download.osgeo.org/webdav/geotools/' }
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -35,8 +34,6 @@ dependencies {
     compile "org.hibernate:hibernate-spatial:5.2.12.Final"
     compile "com.bedatadriven:jackson-datatype-jts:2.4"
     compile "org.wololo:jts2geojson:0.11.0"
-    compile "org.geotools:gt-main:18.2"
-    compile "org.geotools:gt-epsg-hsql:18.2"
 
     compileOnly "org.projectlombok:lombok"
 
@@ -57,7 +54,7 @@ bootRun {
 }
 
 jacoco {
-    toolVersion = "0.8.0"
+    toolVersion = "0.8.1"
 }
 
 jacocoTestReport {

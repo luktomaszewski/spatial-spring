@@ -40,15 +40,21 @@ gradlew clean bootRun -Dspring.profiles.active=local
     - [x] [DELETE] : `/location/{id}`
     - [x] [GET] : `/locations`
     - [x] [POST] Get locations within specified geometry (GeoJSON) : `/locations/within`
-- [ ] Transform — return a new geometry with its coordinates transformed to a different spatial reference.
+- [ ] Authentication Service
+    - [ ] [POST] Create user: `/user`
+    - [ ] [GET] Login: `/user`
+- [x] Country Entity with geometry (boundaries)
+- [ ] Stats Service:
+    - [ ] [GET] Visited Countries: `/stats/countries/visited`- list of visited countries and counts
+~~- [ ] Transform — return a new geometry with its coordinates transformed to a different spatial reference..~~
 - [ ] Spatial Analysis (for example: Geometry buffer)
 
-### Sample Data for POST (`/location/`)
+### Sample Data for POST (`/location`)
 ```
 {
     "type": "Feature",
     "properties": {
-	    "name": "L"
+        "name": "L"
     },
     "geometry": {
         "type": "Polygon",

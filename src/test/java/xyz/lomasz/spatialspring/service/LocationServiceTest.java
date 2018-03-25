@@ -28,6 +28,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,55 +42,59 @@ public class LocationServiceTest {
     private LocationService locationService = new LocationService(locationRepository);
 
     @Test
-    public void existsShouldReturnTrue() throws Exception {
+    public void existsShouldReturnTrue() {
         // given
         Long id = 1L;
+        String userId = "xyz";
 
-        when(locationRepository.exists(id)).thenReturn(true);
+        when(locationRepository.existsLocationEntityByUserAndId(userId, id)).thenReturn(true);
 
         // when
-        boolean result = locationService.exists(id);
+        boolean result = locationService.exists(userId, id);
 
         // then
-        verify(locationRepository, atLeastOnce()).exists(id);
+        verify(locationRepository, atLeastOnce()).existsLocationEntityByUserAndId(userId, id);
         assertTrue(result);
     }
 
     @Test
-    public void existsShouldReturnFalse() throws Exception {
+    public void existsShouldReturnFalse() {
         // given
         Long id = 1L;
+        String userId = "xyz";
 
-        when(locationRepository.exists(id)).thenReturn(false);
+        when(locationRepository.existsLocationEntityByUserAndId(userId, id)).thenReturn(false);
 
         // when
-        boolean result = locationService.exists(id);
+        boolean result = locationService.exists(userId, id);
 
         // then
-        verify(locationRepository, atLeastOnce()).exists(id);
+        verify(locationRepository, atLeastOnce()).existsLocationEntityByUserAndId(userId, id);
         assertFalse(result);
     }
 
     @Test
-    public void saveLocationShouldReturnId() throws Exception {
+    public void saveLocationShouldReturnId() {
         // given
+        Long id = 1L;
+        String userId = "xyz";
+
         String geoJsonString = "{\"type\": \"Point\", \"coordinates\": [125.6, 10.1]}";
         Geometry geoJson = (Geometry) GeoJSONFactory.create(geoJsonString);
         Map<String, Object> properties = new HashMap<>();
         properties.put("name", "test");
         Feature feature = new Feature(geoJson, properties);
 
-        Long id = 1L;
-
         when(locationRepository.save(any(LocationEntity.class)))
                 .thenAnswer((Answer<LocationEntity>) invocation -> {
                     LocationEntity entity = (LocationEntity) invocation.getArguments()[0];
                     entity.setId(id);
+                    entity.setUser(userId);
                     return entity;
                 });
 
         // when
-        Long result = locationService.saveLocation(feature);
+        Long result = locationService.saveLocation(userId, feature);
 
         // then
         assertThat(result).isEqualTo(id);
@@ -97,60 +102,65 @@ public class LocationServiceTest {
     }
 
     @Test
-    public void updateLocation() throws Exception {
+    public void updateLocation() {
         // given
+        Long id = 1L;
+        String userId = "xyz";
+
         String geoJsonString = "{\"type\": \"Point\", \"coordinates\": [125.6, 10.1]}";
         Geometry geoJson = (Geometry) GeoJSONFactory.create(geoJsonString);
         Map<String, Object> properties = new HashMap<>();
         properties.put("name", "test");
         Feature feature = new Feature(geoJson, properties);
 
-        Long id = 1L;
-
         when(locationRepository.save(any(LocationEntity.class)))
                 .thenAnswer((Answer<LocationEntity>) invocation -> {
                     LocationEntity entity = (LocationEntity) invocation.getArguments()[0];
                     entity.setId(id);
+                    entity.setUser(userId);
                     return entity;
                 });
 
         // when
-        locationService.updateLocation(id, feature);
+        locationService.updateLocation(userId, id, feature);
 
         // then
         verify(locationRepository, atLeastOnce()).save(any(LocationEntity.class));
     }
 
     @Test
-    public void deleteLocation() throws Exception {
+    public void deleteLocation() {
         // given
         Long id = 1L;
+        String userId = "xyz";
 
         // when
-        locationService.deleteLocation(id);
+        locationService.deleteLocation(userId, id);
 
         // then
         verify(locationRepository, atLeastOnce()).delete(id);
     }
 
     @Test
-    public void findLocationByIdShouldReturnOptionalEmpty() throws Exception {
+    public void findLocationByIdShouldReturnOptionalEmpty() {
         // given
         Long id = 1L;
+        String userId = "xyz";
 
-        when(locationRepository.findById(id)).thenReturn(null);
+        when(locationRepository.findByUserAndId(userId, id)).thenReturn(Optional.empty());
 
         // when
-        Optional<Feature> result = locationService.findLocationById(id);
+        Optional<Feature> result = locationService.findLocationById(userId, id);
 
         // then
         assertFalse(result.isPresent());
     }
 
     @Test
-    public void findLocationByIdShouldReturnOptionalFeature() throws Exception {
+    public void findLocationByIdShouldReturnOptionalFeature() {
         // given
         Long id = 1L;
+        String userId = "xyz";
         String name = "test";
         Point geometry = new GeometryFactory().createPoint(new Coordinate(0, 0));
 
@@ -161,27 +171,30 @@ public class LocationServiceTest {
 
         LocationEntity entity = new LocationEntity();
         entity.setId(id);
+        entity.setUser(userId);
         entity.setName(name);
         entity.setGeometry(geometry);
 
-        when(locationRepository.findById(id)).thenReturn(entity);
+        when(locationRepository.findByUserAndId(userId, id)).thenReturn(Optional.of(entity));
 
         // when
-        Optional<Feature> result = locationService.findLocationById(id);
+        Optional<Feature> result = locationService.findLocationById(userId, id);
 
         // then
         assertThat(feature).isEqualToComparingFieldByFieldRecursively(result.get());
     }
 
     @Test
-    public void findAllLocations() throws Exception {
+    public void findAllLocations() {
         // given
         Long id = 1L;
+        String userId = "xyz";
         String name = "test";
         Point geometry = new GeometryFactory().createPoint(new Coordinate(0, 0));
 
         LocationEntity entity = new LocationEntity();
         entity.setId(id);
+        entity.setUser(userId);
         entity.setName(name);
         entity.setGeometry(geometry);
         List<LocationEntity> locationEntityList = Collections.singletonList(entity);
@@ -192,19 +205,20 @@ public class LocationServiceTest {
         Feature feature = new Feature(id, geoJson, properties);
         FeatureCollection featureCollection = new FeatureCollection(new Feature[]{feature});
 
-        when(locationRepository.findAll()).thenReturn(locationEntityList);
+        when(locationRepository.findAllByUser(userId)).thenReturn(locationEntityList);
 
         // when
-        FeatureCollection result = locationService.findAllLocations();
+        FeatureCollection result = locationService.findAllLocations(userId);
 
         // then
         assertThat(result).isEqualToComparingFieldByFieldRecursively(featureCollection);
     }
 
     @Test
-    public void findAllLocationsWithin() throws Exception {
+    public void findAllLocationsWithin() {
         // given
         Long id = 1L;
+        String userId = "xyz";
         String name = "test";
         Point geometry = new GeometryFactory().createPoint(new Coordinate(10, 10));
 
@@ -226,10 +240,10 @@ public class LocationServiceTest {
 
         Geometry filterGeoJson = (Geometry) GeoJSONFactory.create(filterGeoJsonString);
 
-        when(locationRepository.findWithin(any(com.vividsolutions.jts.geom.Geometry.class))).thenReturn(locationEntityList);
+        when(locationRepository.findWithin(any(), any(com.vividsolutions.jts.geom.Geometry.class))).thenReturn(locationEntityList);
 
         // when
-        FeatureCollection result = locationService.findAllLocationsWithin(filterGeoJson);
+        FeatureCollection result = locationService.findAllLocationsWithin(userId, filterGeoJson);
 
         // then
         assertThat(featureCollection).isEqualToComparingFieldByFieldRecursively(result);

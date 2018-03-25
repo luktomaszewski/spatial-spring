@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,8 @@ import java.util.Optional;
 @RestController
 public class LocationController {
 
+    private static final String AUTHORIZATION = "Authorization";
+
     private LocationService locationService;
 
     @Autowired
@@ -27,8 +30,10 @@ public class LocationController {
     }
 
     @RequestMapping(value = "/location", method = RequestMethod.POST)
-    public ResponseEntity postLocation(@RequestBody Feature feature) {
-        Long id = locationService.saveLocation(feature);
+    public ResponseEntity postLocation(@RequestHeader(value = AUTHORIZATION) String userId,
+                                       @RequestBody Feature feature) {
+
+        Long id = locationService.saveLocation(userId, feature);
 
         UriComponentsBuilder ucBuilder = UriComponentsBuilder.newInstance();
         HttpHeaders headers = new HttpHeaders();
@@ -38,37 +43,46 @@ public class LocationController {
     }
 
     @RequestMapping(value = "/location/{id}", method = RequestMethod.GET)
-    public ResponseEntity getLocationById(@PathVariable("id") Long id) {
-        Optional<Feature> location = locationService.findLocationById(id);
+    public ResponseEntity getLocationById(@RequestHeader(value = AUTHORIZATION) String userId,
+                                          @PathVariable("id") Long id) {
+
+        Optional<Feature> location = locationService.findLocationById(userId, id);
         return location.map(i -> new ResponseEntity<>(i, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(value = "/location/{id}", method = RequestMethod.PUT)
-    public ResponseEntity putLocation(@PathVariable("id") Long id, @RequestBody Feature feature) {
-        if (!locationService.exists(id)) {
+    public ResponseEntity putLocation(@RequestHeader(value = AUTHORIZATION) String userId,
+                                      @PathVariable("id") Long id,
+                                      @RequestBody Feature feature) {
+
+        if (!locationService.exists(userId, id)) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
-        locationService.updateLocation(id, feature);
+        locationService.updateLocation(userId, id, feature);
         return new ResponseEntity(HttpStatus.OK);
     }
 
     @RequestMapping(value = "/location/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteLocation(@PathVariable("id") Long id) {
-        if (!locationService.exists(id)) {
+    public ResponseEntity deleteLocation(@RequestHeader(value = AUTHORIZATION) String userId,
+                                         @PathVariable("id") Long id) {
+
+        if (!locationService.exists(userId, id)) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
-        locationService.deleteLocation(id);
+        locationService.deleteLocation(userId, id);
         return new ResponseEntity(HttpStatus.OK);
     }
 
     @RequestMapping(value = "/locations", method = RequestMethod.GET)
-    public ResponseEntity<FeatureCollection> getAllLocations() {
-        return new ResponseEntity<>(locationService.findAllLocations(), HttpStatus.OK);
+    public ResponseEntity<FeatureCollection> getAllLocations(@RequestHeader(value = AUTHORIZATION) String userId) {
+        return new ResponseEntity<>(locationService.findAllLocations(userId), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/locations/within", method = RequestMethod.POST)
-    public ResponseEntity<FeatureCollection> getLocationsByGeometry(@RequestBody org.wololo.geojson.Geometry geoJson) {
-        return new ResponseEntity<>(locationService.findAllLocationsWithin(geoJson), HttpStatus.OK);
+    public ResponseEntity<FeatureCollection> getLocationsByGeometry(@RequestHeader(value = AUTHORIZATION) String userId,
+                                                                    @RequestBody org.wololo.geojson.Geometry geoJson) {
+
+        return new ResponseEntity<>(locationService.findAllLocationsWithin(userId, geoJson), HttpStatus.OK);
     }
 }
